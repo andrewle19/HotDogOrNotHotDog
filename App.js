@@ -11,7 +11,7 @@ export default function App() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [status, setStatus] = useState(null);
 
-  let openImagePickerAsync = async () => {
+  let selectImageHandler = async () => {
     let permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (permissionResult.granted === false) {
@@ -26,14 +26,15 @@ export default function App() {
       return;
     }
 
-    setSelectedImage({ localUri: pickerResult.uri });
+    setSelectedImage(pickerResult.uri);
   }
 
-  let uploadToGoogle = async () => {
-    try {
 
-      const uploadedImage = await firestorageProxy.uploadImageAsync(selectedImage.localUri);
-      const result = await googleVisionProxy.isHotDog(uploadedImage);
+  let analyzeImage = async () => {
+    try {
+      const result = await firestorageProxy.uploadImageAsync(selectedImage).then(image => {
+        return googleVisionProxy.isHotDog(image);
+      })
 
       if (result === true) {
         setStatus("Hot Dog!");
@@ -41,7 +42,7 @@ export default function App() {
         setStatus("Not Hot Dog!");
       }
     } catch (error) {
-      console.log(error);
+      alert("Was not able to analyze please try again later");
     }
   }
 
@@ -61,17 +62,18 @@ export default function App() {
   if (selectedImage !== null) {
     return (
       <View style={styles.container}>
-        <Image source={{ uri: selectedImage.localUri }} style={styles.thumbnail}/>
-        <Button title="Analyze" color="blue" onPress={uploadToGoogle}/>
+        <Image source={{ uri: selectedImage }} style={styles.thumbnail}/>
+        <Button title="Pick an Image" onPress={selectImageHandler}></Button>
+        <Button title="Analyze" color="blue" onPress={analyzeImage}/>
         <Text>{status}</Text>
       </View>
     );
   } else {
     return (
       <View style={styles.container}>
-        <Text>Dog List</Text>
-        {dogs.map((dog) => { return <Text key={dog.id}>Name: {dog.name} Type: {dog.type}</Text>} )}
-        <Button title="Pick an Image" onPress={openImagePickerAsync}></Button>
+        {/* <Text>Dog List</Text>
+        {dogs.map((dog) => { return <Text key={dog.id}>Name: {dog.name} Type: {dog.type}</Text>} )} */}
+        <Button title="Pick an Image" onPress={selectImageHandler}></Button>
         <StatusBar style="auto" />
       </View>
     );
@@ -86,8 +88,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   thumbnail: {
-    width: 300,
-    height: 300,
+    width: 400,
+    height: 400,
     resizeMode: "contain"
   }
 });
