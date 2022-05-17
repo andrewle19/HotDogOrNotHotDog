@@ -2,9 +2,10 @@ import { StatusBar } from 'expo-status-bar';
 import { collection, getDocs } from 'firebase/firestore';
 import { useState, useEffect } from "react";
 import { StyleSheet, Text, View, Button, Image } from 'react-native';
-import { db } from './firebase-config';
 import * as ImagePicker from 'expo-image-picker';
 import * as googleVisionProxy from './proxies/googleVisionProxy';
+import * as firestorageProxy from './proxies/firestorageProxy';
+import { db } from './firebase-config';
 
 export default function App() {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -25,12 +26,14 @@ export default function App() {
       return;
     }
 
-    setSelectedImage({ localUri: pickerResult.uri });    
+    setSelectedImage({ localUri: pickerResult.uri });
   }
 
   let uploadToGoogle = async () => {
     try {
-      const result = await googleVisionProxy.isHotDog(selectedImage);
+
+      const uploadedImage = await firestorageProxy.uploadImageAsync(selectedImage.localUri);
+      const result = await googleVisionProxy.isHotDog(uploadedImage);
 
       if (result === true) {
         setStatus("Hot Dog!");
@@ -45,21 +48,21 @@ export default function App() {
   const [dogs, setDogs] = useState([]);
   const dogsTable = collection(db, "dogs");
   
-  useEffect(()=> {
-    const getDogs = async () => {
-        const data = await getDocs(dogsTable);
-        setDogs(data.docs.map((doc) => ({...doc.data(), id: doc.id})))
-        console.log(setDogs);
-    }
-    getDogs();
-  }, [])
+  // useEffect(()=> {
+  //   const getDogs = async () => {
+  //       const data = await getDocs(dogsTable);
+  //       setDogs(data.docs.map((doc) => ({...doc.data(), id: doc.id})))
+  //       console.log(setDogs);
+  //   }
+  //   getDogs();
+  // }, [])
 
 
   if (selectedImage !== null) {
     return (
       <View style={styles.container}>
         <Image source={{ uri: selectedImage.localUri }} style={styles.thumbnail}/>
-        <Button title="Upload" color="blue" onPress={uploadToGoogle}/>
+        <Button title="Analyze" color="blue" onPress={uploadToGoogle}/>
         <Text>{status}</Text>
       </View>
     );
