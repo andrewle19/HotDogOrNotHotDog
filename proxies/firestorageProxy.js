@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { storage } from '../firebase-config';
 
 export async function uploadImageAsync(uri) {
+    console.log("uploading image to firestorage");
     const blob = await new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.onload = function () {
@@ -17,11 +18,9 @@ export async function uploadImageAsync(uri) {
       xhr.open("GET", uri, true);
       xhr.send(null);
     });
-    const fileRef = ref(storage, uuidv4());
-  
+    
+    const fileRef = ref(storage, uuidv4());  
     await uploadBytes(fileRef, blob);
-  
-    blob.close();
   
     return await getDownloadURL(fileRef);
 };
