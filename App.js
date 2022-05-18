@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { useState, useEffect } from "react";
-import { StyleSheet, Text, View, Button, Image, TouchableOpacity, Dimensions } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, Button, Image, TouchableOpacity, Dimensions } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as googleVisionProxy from './proxies/googleVisionProxy';
 import * as firestorageProxy from './proxies/firestorageProxy';
@@ -18,7 +18,7 @@ export default function App() {
   const [cameraOn, setCameraOn] = useState(false);
   const [type, setType] = useState(CameraType.back);
   const [cameraReady, setCameraReady] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setLoading] = useState(false);
 
   const selectImageHandler = async () => {
     let permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -42,26 +42,28 @@ export default function App() {
 
   const analyzeImage = async () => {
     if (status !== null) {
-      alert("Already analyzed");
+      return alert("Already analyzed");
     }
 
     try {
+      setLoading(true);
       const result = await firestorageProxy.uploadImageAsync(selectedImage).then(image => {
         return googleVisionProxy.isHotDog(image);
       })
 
       if (result === true) {
         setStatus("Hot Dog!");
-        setLoading(true);
       } else {
         setStatus("Not Hot Dog!");
-        setLoading(true);
       }
     } catch (error) {
       console.log(error);
       alert("Was not able to analyze please try again later");
     }
+
+    setLoading(false);
   }
+
 
   const takePicture = async () => {
     if (camera) {
@@ -74,18 +76,29 @@ export default function App() {
     }
   };
 
+  const startLoading = () => {
+    setLoading(true);
+    console.log(isLoading);
+    setTimeout(() => {
+      setLoading(false);
+    }, 3000);
+
+    return
+  };
+  
+  if (isLoading === true) {
+    return (<Spinner
+      visible={isLoading}
+      textContent={'Analyzing...'}
+      textStyle={styles.spinnerTextStyle}/>)
+  }
+
   if (selectedImage !== null && cameraOn !== true) {
     return (
       <View style={styles.container}>
-         <Spinner
-          visible={loading}
-          textContent={'Analyzing...'}
-          textStyle={styles.spinnerTextStyle}
-        />
         <Image source={{ uri: selectedImage }} style={styles.thumbnail}/>
         <Button title="Analyze" color="blue" onPress={analyzeImage}/>
         <Text>{status}</Text>
-        <Text> {loading} </Text>
 
         <View style={styles.bottomButtonsContainer}>
           <Button title='Take Picture' onPress={() => { setCameraOn(cameraOn === false ? true : false) } } />
