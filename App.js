@@ -50,9 +50,9 @@ export default function App() {
       })
 
       if (result === true) {
-        setStatus("Hot Dog!!!");
+        setStatus("🌭 Hot Dog 🌭");
       } else {
-        setStatus("Not Hot Dog!");
+        setStatus("❌ Not Hot Dog ❌");
       }
     } catch (error) {
       console.log(error);
@@ -66,13 +66,13 @@ export default function App() {
     if (camera) {
       console.log("Taking picture");
       const image = await camera.takePictureAsync(null);
-
+      console.log(image);
+      
       setSelectedImage(image.uri);
       setCameraOn(false);
       setStatus(null);
     }
   };
-
 
   if (isLoading === true) {
     return (<Spinner
