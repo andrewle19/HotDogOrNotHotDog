@@ -1,4 +1,4 @@
-const API_KEY = 'AIzaSyBVe7boImQpNy4H-aAgypiTiVoOQqCG5Ng';
+const API_KEY = 'key';
 const API_URL = `https://vision.googleapis.com/v1/images:annotate?key=${API_KEY}`;
 
 export async function isHotDog(image) {
